@@ -1,0 +1,5 @@
+conda install python=3.7 tensorflow=1.15
+pip install opencv-python-headless open3d dm-sonnet==1.23 numpy matplotlib scipy==1.2.0 pypng ruamel.yaml pillow cython pyopengl glumpy keras pyglet==2.0.dev0
+
+
+
