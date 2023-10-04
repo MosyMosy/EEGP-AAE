@@ -37,6 +37,11 @@ path_model='./ws/meshes/obj_{:02d}.ply'.format(obj_id)
 model_ply = inout.load_ply(path_model)
 model_o3d = o3d.io.read_point_cloud(path_model)
 
+# to solve the following problem
+# pyglet.canvas.xlib.NoSuchDisplayException: Cannot connect to "None" 
+# from https://stackoverflow.com/questions/60922076/pyglet-canvas-xlib-nosuchdisplayexception-cannot-connect-to-none-only-happens
+os.environ['DISPLAY'] = ':1'
+
 #### Step 0: Load pose estimation network
 class Encoder(snt.AbstractModule):
     def __init__(self, latent_space_size, num_filters, kernel_size, strides, batch_norm, name='encoder'):

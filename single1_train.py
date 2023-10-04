@@ -29,7 +29,7 @@ from network import build_dataset,build_decoder,build_encoder,VectorQuantizerEMA
 
 ################################################################################
 path_workspace = './ws/'
-path_embedding_data = '../../../Edge-Network/embedding20s/'
+path_embedding_data = "embeding/T-Less_generated/" #'../../../Edge-Network/embedding20s/'
 name_fg_data='prepared_training_data_{:02d}_subdiv'
 
 tau=0.07
@@ -59,8 +59,8 @@ def on_ctrl_c(signal, frame):
 signal.signal(signal.SIGINT, on_ctrl_c)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("experiment_name")
-parser.add_argument("obj_id")
+parser.add_argument("--experiment_name", default="T-Less", required=False)
+parser.add_argument("--obj_id", default="1", required=False)
 arguments = parser.parse_args()
 
 full_name = arguments.experiment_name.split('/')

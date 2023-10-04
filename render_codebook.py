@@ -11,7 +11,13 @@ from pysixd_stuff.pysixd import renderer_vt
 from pysixd_stuff.pysixd import view_sampler
 import data_utils
 
+# to solve the following problem
+# pyglet.canvas.xlib.NoSuchDisplayException: Cannot connect to "None" 
+# from https://stackoverflow.com/questions/60922076/pyglet-canvas-xlib-nosuchdisplayexception-cannot-connect-to-none-only-happens
+os.environ['DISPLAY'] = ':1'
 
+    
+    
 def generate_codebook_imgs(path_model,dir_imgs,dir_edges, path_obj_bbs,path_rot,render_dims,cam_K,depth_scale=1.,texture_img=None,start_end=None):
     if not os.path.exists(dir_imgs):
         os.makedirs(dir_imgs)
@@ -79,14 +85,10 @@ def generate_codebook_imgs(path_model,dir_imgs,dir_edges, path_obj_bbs,path_rot,
     bar.finish()
     np.save(path_obj_bbs,obj_bbs)
 
-
-if __name__=='__main__':
-	#Rendered by batch, with batch size=50
-    obj_id=int(sys.argv[1])
-    bid=int(sys.argv[2])
-    batch_size=50
-    path_model ='./ws/meshes/obj_{:02d}.ply'.format(obj_id)#Path of the 3D mesh ply file
-    dir_out='./embedding92232s/{:02d}/'.format(obj_id) #dir to save the rendered images, edgemaps, 2D bounding box, sampled rotations
+def render(obj_id, bid):
+    batch_size=10
+    path_model ='../../dataset/mesh/T-Less/models/models_cad/obj_{:06d}.ply'.format(obj_id)#Path of the 3D mesh ply file
+    dir_out='./ws/tmp_datasets/embeding/{:02d}/'.format(obj_id) #dir to save the rendered images, edgemaps, 2D bounding box, sampled rotations
     dir_imgs = os.path.join(dir_out,'imgs')
     dir_edges= os.path.join(dir_out,'in_edges2')
     path_obj_bbs= os.path.join(dir_out,'obj_bbs')
@@ -108,3 +110,18 @@ if __name__=='__main__':
                            depth_scale=1.,
                            texture_img=texture_img_rgb,
                            start_end=[bid*batch_size,(bid+1)*batch_size])
+    
+if __name__=='__main__':
+	#Rendered by batch, with batch size=50
+    if len(sys.argv) > 1:
+        model_id=int(sys.argv[1])
+        bid=int(sys.argv[2])
+        render(model_id, bid)
+    else: 
+               
+        for i in range(1):
+            for b in range(95,9224): # to sum up the 50 batches to reach the 92232 codebooks.
+                render(i+1, b)
+                print("current batch: {}".format(b))
+
+    

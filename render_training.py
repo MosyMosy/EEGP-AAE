@@ -9,6 +9,12 @@ import data_utils
 from pysixd_stuff.pysixd import inout,transform,view_sampler
 from imgaug.augmenters import *
 
+# to solve the following problem
+# pyglet.canvas.xlib.NoSuchDisplayException: Cannot connect to "None" 
+# from https://stackoverflow.com/questions/60922076/pyglet-canvas-xlib-nosuchdisplayexception-cannot-connect-to-none-only-happens
+os.environ['DISPLAY'] = ':1'
+
+
 verbose=True
 class Model(object):
     def __init__(self, dir_dataset,path_model, saved_file_name, num_per_batch):
@@ -178,15 +184,11 @@ class Model(object):
         bar.finish()
         np.savez(current_file_name, bgr_x=self.bgr_x, mask_x=self.mask_x, bgr_y=self.bgr_y, mask_y=self.mask_y, matrix_rot_y=self.matrix_rot_y)
 
-
-if __name__=='__main__':
-    #Rendered by batch, with batch size=50
-    model_id=int(sys.argv[1])
-    bid=int(sys.argv[2])
+def render(model_id, bid):    
     render_model=Model(dir_dataset='./ws/tmp_datasets/{:02d}'.format(model_id),
-                       path_model='./ws/meshes/obj_{:02d}.ply'.format(model_id),
-                       saved_file_name='prepared_training_data_{:02d}_subdiv'.format(model_id),
-                       num_per_batch=50)
+                    path_model='../../dataset/mesh/T-Less/models/models_cad/obj_{:06d}.ply'.format(model_id),
+                    saved_file_name='prepared_training_data_{:02d}_subdiv'.format(model_id),
+                    num_per_batch=50)
     path_texture=None
     texture_img_rgb=None
     if path_texture:
@@ -194,8 +196,21 @@ if __name__=='__main__':
         texture_img_rgb=texture_img_bgr[:,:,2::-1]
     if True:
         render_model.render_batch_training_images(render_dims=(720,540),
-                                                  cam_K=[1075.65, 0, 720 / 2, 0, 1073.90, 540 / 2, 0, 0, 1],
-                                                  batch_id=bid,depth_scale=1.,texture_img=texture_img_rgb)
+                                                cam_K=[1075.65, 0, 720 / 2, 0, 1073.90, 540 / 2, 0, 0, 1],
+                                                batch_id=bid,depth_scale=1.,texture_img=texture_img_rgb)
     else:
         render_model.combine_rendered_batches(400)#Combine all generated data into one .npz file
         render_model.load_training_images()#This step is for double check
+
+
+if __name__=='__main__':
+    #Rendered by batch, with batch size=50
+    if len(sys.argv) > 1:
+        model_id=int(sys.argv[1])
+        bid=int(sys.argv[2])
+        render(model_id, bid)
+    else:        
+        for i in range(30):
+            for b in range(95,9224): # to sum up the 50 batches to reach the 20000 images.
+                render(i+1, b)
+                print("obj {} is done.".format(i))
