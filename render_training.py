@@ -188,7 +188,7 @@ def render(model_id, bid):
     render_model=Model(dir_dataset='./ws/tmp_datasets/{:02d}'.format(model_id),
                     path_model='../../dataset/mesh/T-Less/models/models_cad/obj_{:06d}.ply'.format(model_id),
                     saved_file_name='prepared_training_data_{:02d}_subdiv'.format(model_id),
-                    num_per_batch=50)
+                    num_per_batch=10)
     path_texture=None
     texture_img_rgb=None
     if path_texture:
@@ -210,7 +210,13 @@ if __name__=='__main__':
         bid=int(sys.argv[2])
         render(model_id, bid)
     else:        
-        for i in range(30):
-            for b in range(95,9224): # to sum up the 50 batches to reach the 20000 images.
-                render(i+1, b)
-                print("obj {} is done.".format(i))
+        for i in range(1):
+            for b in range(0,2000): # to sum up the 50 batches to reach the 20000 images.
+                # render(i+1, b)
+                print("current batch: {}".format(b))
+
+
+# for i in $(seq 0 2000); 
+# 	do echo $i
+#   python render_training.py 1 $i;
+# done;

@@ -124,4 +124,8 @@ if __name__=='__main__':
                 render(i+1, b)
                 print("current batch: {}".format(b))
 
-    
+
+# for i in $(seq 0 9224); 
+# 	do echo $i
+#   python render_codebook.py 1 $i;
+# done;
