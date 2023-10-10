@@ -222,7 +222,7 @@ if __name__=='__main__':
         bid=int(sys.argv[2])
         render(model_id, bid)
     else:
-        combine(26, 2000)        
+        combine(24, 2000)        
         # for i in range(1):
             
         #     for b in range(0,2000): # to sum up the 50 batches to reach the 20000 images.

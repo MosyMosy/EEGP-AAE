@@ -52,7 +52,8 @@ class Dataset(object):
         for iid,oid in enumerate(self.list_objs):
             print('Loading training images of object', oid)
             current_config_hash = self.fg_path_format.format(oid)  # hashlib.md5(str(args.items('Dataset')+args.items('Paths'))).hexdigest()
-            current_file_name = os.path.join(self.dataset_path, current_config_hash + '.npz')
+            # current_file_name = os.path.join(self.dataset_path, current_config_hash + '.npz')
+            current_file_name = os.path.join(self.dataset_path,"{:02d}".format(oid), current_config_hash + '.npz')
             if os.path.exists(current_file_name):
                 training_data = np.load(current_file_name)
                 self.train_x[iid*self.num_imgs_per_obj:(iid+1)*self.num_imgs_per_obj] = training_data['bgr_x'].astype(np.uint8)
@@ -237,7 +238,7 @@ class Dataset(object):
 
         if self.inshape[-1] != 3:
             edge_x = np.empty((batch_size,) + self.shape[:-1] + (1,), dtype=np.float32)
-            for i in xrange(batch_size):
+            for i in range(batch_size):
                 p1 = random.randint(30, 100)  # (50,150)
                 p2 = random.random() * 0.8 + 1.2
                 edge_x[i] = (cv2.Canny(batch_x[i], p1, p1 * p2)).astype(np.float32)[:, :, np.newaxis]
@@ -258,7 +259,7 @@ class Dataset(object):
         weight_y = np.zeros((batch_size,) + self.shape[:-1] + (1,), dtype=np.float32)
         if self.outshape[-1] != 3:
             edge_y = np.empty((batch_size,) + self.shape[:-1] + (1,), dtype=np.float32)
-            for i in xrange(batch_size):
+            for i in range(batch_size):
                 edge_y[i] = (cv2.Canny(batch_y[i], 50, 150)).astype(np.float32)[:, :, np.newaxis]
                 cnt_edgey = float(np.count_nonzero(edge_y[i]))
                 weight_y[i] = np.where(edge_y[i] == 0, cnt_edgey / (self.shape[0] * self.shape[1]),

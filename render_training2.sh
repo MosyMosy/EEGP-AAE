@@ -1,5 +1,5 @@
 
-for obj in 24 #$(seq 4)
+for obj in 14 #$(seq 4)
 do
     for i in $(seq 0 1999)
     do 
