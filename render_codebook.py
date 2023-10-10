@@ -18,15 +18,19 @@ os.environ['DISPLAY'] = ':1'
 
     
     
-def generate_codebook_imgs(path_model,dir_imgs,dir_edges, path_obj_bbs,path_rot,render_dims,cam_K,depth_scale=1.,texture_img=None,start_end=None):
+def generate_codebook_imgs(path_model,dir_imgs,dir_edges, path_obj_bbs,path_rot,render_dims,cam_K,depth_scale=1.,texture_img=None,start_end=None, training=True):
     if not os.path.exists(dir_imgs):
         os.makedirs(dir_imgs)
     if not os.path.exists(dir_edges):
         os.makedirs(dir_edges)
 
-    view_Rs=data_utils.viewsphere_for_embedding_v2(num_sample_views=2500,num_cyclo=36,use_hinter=True)
+    # view_Rs=data_utils.viewsphere_for_embedding_v2(num_sample_views=2500,num_cyclo=36,use_hinter=True)
     #data_utils.viewsphere_for_embedding_v2(num_sample_views=2500,num_cyclo=36,use_hinter=True)
-    #For reference R_c: view_Rs=data_utils.viewsphere_for_embedding_v2(num_sample_views=400,num_cyclo=20,use_hinter=False)
+    #For reference R_c:
+    if training: 
+        view_Rs=data_utils.viewsphere_for_embedding_v2(num_sample_views=400,num_cyclo=20,use_hinter=False)
+    else:
+        view_Rs=data_utils.viewsphere_for_embedding_v2(num_sample_views=2500,num_cyclo=36,use_hinter=True)
 
     #num_sample_views: number of samples on the unit sphere
     #num_cyclo: number of samples regarding inner-plane rotations
@@ -85,8 +89,8 @@ def generate_codebook_imgs(path_model,dir_imgs,dir_edges, path_obj_bbs,path_rot,
     bar.finish()
     np.save(path_obj_bbs,obj_bbs)
 
-def render(obj_id, bid):
-    batch_size=10
+def render(obj_id, bid, training=True):
+    batch_size=20
     path_model ='../../dataset/mesh/T-Less/models/models_cad/obj_{:06d}.ply'.format(obj_id)#Path of the 3D mesh ply file
     dir_out='./ws/tmp_datasets/embeding/{:02d}/'.format(obj_id) #dir to save the rendered images, edgemaps, 2D bounding box, sampled rotations
     dir_imgs = os.path.join(dir_out,'imgs')
@@ -109,20 +113,22 @@ def render(obj_id, bid):
                            cam_K=[1075.65, 0, 720 / 2, 0, 1073.90, 540 / 2, 0, 0, 1],
                            depth_scale=1.,
                            texture_img=texture_img_rgb,
-                           start_end=[bid*batch_size,(bid+1)*batch_size])
+                           start_end=[bid*batch_size,(bid+1)*batch_size],
+                           training=training)
     
 if __name__=='__main__':
+    training = True
 	#Rendered by batch, with batch size=50
     if len(sys.argv) > 1:
         model_id=int(sys.argv[1])
         bid=int(sys.argv[2])
-        render(model_id, bid)
+        render(model_id, bid, training)
     else: 
                
-        for i in range(1):
-            for b in range(95,9224): # to sum up the 50 batches to reach the 92232 codebooks.
-                render(i+1, b)
-                print("current batch: {}".format(b))
+        for i in range(0,30):
+            for b in range(401): # to sum up the 50 batches to reach the 92232 codebooks.
+                render(i+1, b, training)
+            print("current obj: {}".format(i+1))
 
 
 # for i in $(seq 0 9224); 

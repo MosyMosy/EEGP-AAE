@@ -1,6 +1,6 @@
 # incase of "Backend (<module 'glumpy.app.window.backends.backend_glfw' from '....../backend_glfw.py'>) not available" > install sudo apt-get install libglfw3
 
-conda create --name EEGP-AAE python=3.7 tensorflow=1.15
+conda create --name AAE4 python=3.7 tensorflow=1.15
 pip install opencv-python-headless open3d dm-sonnet==1.23 numpy matplotlib scipy==1.2.0 pypng ruamel.yaml pillow cython pyopengl glumpy keras pyglet==2.0.dev0 imgaug progressbar
 
 

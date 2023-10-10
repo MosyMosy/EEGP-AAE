@@ -15,7 +15,7 @@ from imgaug.augmenters import *
 os.environ['DISPLAY'] = ':1'
 
 
-verbose=True
+
 class Model(object):
     def __init__(self, dir_dataset,path_model, saved_file_name, num_per_batch):
         self.shape_c3 = (128,128,3)
@@ -33,7 +33,7 @@ class Model(object):
         self.matrix_rot_y=np.empty((self.num_per_batch,)+(3,3),dtype=np.float32)
 
 
-    def combine_rendered_batches(self,num_batches):
+    def combine_rendered_batches(self,num_batches, verbose= True):
         num_total=self.num_per_batch*num_batches
         self.bgr_x = np.empty((num_total,) + self.shape_c3, dtype=np.uint8)
         self.bgr_y = np.empty((num_total,) + self.shape_c3, dtype=np.uint8)
@@ -46,6 +46,7 @@ class Model(object):
         print('Size',self.bgr_x.shape)
 
         for i in range(0,num_batches):
+            print("reading batch {}".format(i))
             current_file_name=os.path.join(self.dir_dataset, self.saved_file_name + '{0}.npz'.format(i))
             training_data = np.load(current_file_name)
             self.bgr_x[i*self.num_per_batch:(i+1)*self.num_per_batch]=training_data['bgr_x'].astype(np.uint8)
@@ -64,10 +65,15 @@ class Model(object):
                 cv2.imshow('bgr_y', self.bgr_y[(i+1)*self.num_per_batch-1])
                 cv2.waitKey()
                 print('rot_y:',self.matrix_rot_y[(i+1)*self.num_per_batch-1])
-        current_file_name = os.path.join(self.dir_dataset, self.saved_file_name + '.npz')
-        np.savez(current_file_name, bgr_x=self.bgr_x,bgr_y=self.bgr_y, mask_x=self.mask_x, mask_y=self.mask_y, matrix_rot_y=self.matrix_rot_y)
-
-    def load_training_images(self):
+        target_file_name = os.path.join(self.dir_dataset, self.saved_file_name + '.npz')
+        np.savez(target_file_name, bgr_x=self.bgr_x,bgr_y=self.bgr_y, mask_x=self.mask_x, mask_y=self.mask_y, matrix_rot_y=self.matrix_rot_y)
+        
+        # delete all the combined files
+        for i in range(0,num_batches):
+            current_file_name=os.path.join(self.dir_dataset, self.saved_file_name + '{0}.npz'.format(i))
+            os.remove(current_file_name)
+            
+    def load_training_images(self, verbose=True):
         current_file_name = os.path.join(self.dir_dataset, self.saved_file_name + '.npz')
         training_data = np.load(current_file_name)
         self.bgr_x = training_data['bgr_x'].astype(np.uint8)
@@ -194,13 +200,19 @@ def render(model_id, bid):
     if path_texture:
         texture_img_bgr=cv2.imread(path_texture['{:02d}'.format(model_id)])
         texture_img_rgb=texture_img_bgr[:,:,2::-1]
-    if True:
-        render_model.render_batch_training_images(render_dims=(720,540),
-                                                cam_K=[1075.65, 0, 720 / 2, 0, 1073.90, 540 / 2, 0, 0, 1],
-                                                batch_id=bid,depth_scale=1.,texture_img=texture_img_rgb)
-    else:
-        render_model.combine_rendered_batches(400)#Combine all generated data into one .npz file
-        render_model.load_training_images()#This step is for double check
+
+    render_model.render_batch_training_images(render_dims=(720,540),
+                                            cam_K=[1075.65, 0, 720 / 2, 0, 1073.90, 540 / 2, 0, 0, 1],
+                                            batch_id=bid,depth_scale=1.,texture_img=texture_img_rgb)
+    
+
+def combine(model_id, num_batches):    
+    render_model=Model(dir_dataset='./ws/tmp_datasets/{:02d}'.format(model_id),
+                    path_model='../../dataset/mesh/T-Less/models/models_cad/obj_{:06d}.ply'.format(model_id),
+                    saved_file_name='prepared_training_data_{:02d}_subdiv'.format(model_id),
+                    num_per_batch=10)
+    render_model.combine_rendered_batches(num_batches, verbose=False)#Combine all generated data into one .npz file
+    render_model.load_training_images(verbose=False)#This step is for double check
 
 
 if __name__=='__main__':
@@ -209,11 +221,13 @@ if __name__=='__main__':
         model_id=int(sys.argv[1])
         bid=int(sys.argv[2])
         render(model_id, bid)
-    else:        
-        for i in range(1):
-            for b in range(0,2000): # to sum up the 50 batches to reach the 20000 images.
-                # render(i+1, b)
-                print("current batch: {}".format(b))
+    else:
+        combine(26, 2000)        
+        # for i in range(1):
+            
+        #     for b in range(0,2000): # to sum up the 50 batches to reach the 20000 images.
+        #         render(i+1, b)
+        #         print("current batch: {}".format(b))
 
 
 # for i in $(seq 0 2000); 
